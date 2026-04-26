@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCDezz | Future of Audio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <style>
+        :root { --cc-bg: #030712; --cc-primary: #00F2FF; }
+        body { background-color: var(--cc-bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .sidebar-premium { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); }
+        .nav-link { transition: all 0.3s ease; border-left: 3px solid transparent; cursor: pointer; }
+        .nav-link:hover, .nav-active { background: rgba(0, 242, 255, 0.05); border-left: 3px solid var(--cc-primary); color: var(--cc-primary); }
+        
+        /* Background Dinamis menggunakan image.jpg sesuai perintah */
+        #dynamic-header { 
+            background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.5), #030712), url('assets/images/bg-racing.jpg');
+            background-size: cover; background-position: center; transition: all 0.5s ease; 
+        }
+        
+        .avatar-circle { display: flex; align-items: center; justify-content: center; font-weight: 900; text-transform: uppercase; border-radius: 50%; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .liked { color: #ff4d4d !important; }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row">
+
+    <div id="auth-screen" class="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-[#030712]">
+        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter">CCDEZZ</h2>
+                <p id="auth-status" class="text-gray-500 text-[10px] uppercase tracking-widest mt-2">Masuk ke stasiun musikmu</p>
+            </div>
+            <div class="space-y-4">
+                <div id="signup-fields" class="hidden space-y-4">
+                    <input type="email" id="reg-email" placeholder="Email" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-white text-sm">
+                </div>
+                <input type="text" id="auth-identifier" placeholder="Username atau Email" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-white text-sm">
+                <input type="password" id="auth-password" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-white text-sm">
+                <button onclick="handleAuth()" id="auth-btn" class="w-full bg-cyan-400 text-black font-black py-4 rounded-xl uppercase text-xs">Sign In</button>
+                <button onclick="toggleAuthMode()" id="auth-switch" class="w-full text-gray-500 text-[10px] font-bold">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <aside class="hidden md:flex w-72 sidebar-premium flex-col border-r border-white/5 shadow-2xl z-50 h-full relative">
+        <div class="p-8 mb-4 flex items-center gap-3">
+            <img src="assets/images/logo-ccdezz.jpg" class="w-8 h-8 rounded-full border border-cyan-400">
+            <span class="text-lg font-black italic tracking-widest text-white uppercase">CCDEZZ</span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-6 overflow-y-auto pb-10">
+            <div>
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Utama</p>
+                <a onclick="renderTracks(songDatabase)" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg nav-active"><i class="fas fa-home"></i> Beranda</a>
+                <a onclick="renderLiked()" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg"><i class="fas fa-heart text-red-500"></i> Disukai</a>
+                <a onclick="openUploadModal()" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg"><i class="fas fa-plus-circle text-cyan-400"></i> Tambah Lagu</a>
+            </div>
+            
+            <div>
+                <div class="flex justify-between items-center px-4 mb-4">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Playlist Saya</p>
+                    <button onclick="createPlaylist()" class="text-cyan-400 text-xs hover:scale-110 transition"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="playlist-nav" class="space-y-1"></div>
+            </div>
+        </nav>
+
+        <div class="p-6 border-t border-white/5 bg-black/20">
+            <button onclick="openProfileModal()" class="flex items-center gap-3 w-full hover:bg-white/5 p-2 rounded-lg transition text-left group">
+                <div id="user-avatar-container" class="w-10 h-10 overflow-hidden rounded-full"></div>
+                <div class="overflow-hidden">
+                    <p id="user-display-name" class="text-xs font-bold truncate text-white uppercase">User</p>
+                    <p id="user-display-email" class="text-[9px] text-gray-500 truncate lowercase">@email</p>
+                </div>
+                <i class="fas fa-cog ml-auto text-[10px] text-gray-500 opacity-0 group-hover:opacity-100"></i>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto bg-[#030712] relative flex flex-col h-full">
+        <header id="dynamic-header" class="min-h-[35vh] md:min-h-[45vh] p-6 md:p-10 flex flex-col justify-end">
+            <h2 id="view-title" class="text-5xl md:text-8xl font-black italic tracking-tighter mb-2 uppercase text-white drop-shadow-2xl">Vibe<br>Station</h2>
+            <p id="track-count" class="text-cyan-400 text-[10px] font-bold uppercase tracking-[0.3em]">0 Tracks</p>
+        </header>
+
+        <section class="p-4 md:p-10 pb-20">
+            <div id="master-track-list" class="space-y-1"></div>
+        </section>
+    </main>
+
+    <div id="upload-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[400] hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-lg shadow-2xl">
+            <h3 class="text-white font-black text-center mb-6 uppercase tracking-widest">Upload Lagu Baru</h3>
+            <div class="space-y-4">
+                <div class="p-6 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center">
+                    <label class="text-[10px] font-bold text-purple-400 uppercase block mb-2">Pilih File MP3</label>
+                    <input type="file" id="file-audio" accept="audio/*" class="w-full text-xs text-gray-500 cursor-pointer">
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Cover Lagu (Gambar)</label>
+                    <input type="file" id="file-cover" accept="image/*" class="w-full text-xs text-gray-500">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="processUpload()" class="flex-1 bg-cyan-400 text-black font-black py-4 rounded-xl uppercase text-[10px]">Simpan ke Library</button>
+                <button onclick="closeUploadModal()" class="flex-1 border border-white/10 text-white font-black py-4 rounded-xl uppercase text-[10px]">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[400] hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl">
+            <h3 class="text-white font-black text-center mb-6 uppercase">Profil & Akun</h3>
+            <div class="space-y-4">
+                <input type="text" id="edit-username" placeholder="Username Baru" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none">
+                <div class="text-center">
+                    <input type="file" id="edit-avatar-input" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('edit-avatar-input').click()" class="text-cyan-400 text-[10px] font-bold uppercase border border-cyan-400/20 px-4 py-2 rounded-lg">Ubah Foto Profil</button>
+                </div>
+                <div id="cropper-container" class="hidden">
+                    <img id="crop-preview" class="max-w-full rounded-xl mt-4">
+                    <button onclick="saveCroppedAvatar()" class="mt-4 w-full bg-white text-black font-black py-2 rounded-lg text-[10px] uppercase">Crop & Simpan</button>
+                </div>
+                <button onclick="deleteAccount()" class="w-full text-red-500 text-[10px] font-bold py-2 uppercase opacity-50 hover:opacity-100 transition">Hapus Akun & Data Permanen</button>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="saveProfile()" class="flex-1 bg-cyan-400 text-black font-black py-4 rounded-xl uppercase text-[10px]">Update Profil</button>
+                <button onclick="closeProfileModal()" class="flex-1 border border-white/10 text-white font-black py-4 rounded-xl uppercase text-[10px]">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
