@@ -1,47 +1,36 @@
 /**
- * CCDEZZ CORE v7.1 - FIXED PROFILE & NAME LOGIC
+ * CCDEZZ CORE v8.0 - FINAL STABLE
  */
 
 let songDatabase = JSON.parse(localStorage.getItem('cc_songs')) || [];
 let likedSongs = JSON.parse(localStorage.getItem('cc_liked')) || [];
 let currentCropper = null;
+const audioPlayer = document.getElementById('main-audio-player');
 
-// --- 1. SECURITY (MASTER KEY) ---
-const M_KEY = "MTIzNA=="; // Base64 dari '1234'
+// --- 1. MASTER ACCESS ---
+const MASTER_HASH = "MTIzNA=="; // Base64 dari '1234'
 
 const checkMasterKey = () => {
-    const input = document.getElementById('master-key').value;
-    if (btoa(input) === M_KEY) {
-        localStorage.setItem('cc_session', 'authorized');
+    const val = document.getElementById('master-key').value;
+    if (btoa(val) === MASTER_HASH) {
+        localStorage.setItem('cc_auth', 'true');
         document.getElementById('auth-screen').classList.add('hidden');
         initApp();
     } else {
-        alert("ACCESS DENIED: Wrong Master Key");
+        alert("WRONG KEY!");
     }
 };
 
-// --- 2. AUDIO ENGINE ---
-const audioPlayer = document.getElementById('main-audio-player');
-
-const playSong = (id) => {
-    const song = songDatabase.find(s => s.id == id);
-    if (!song) return;
-    audioPlayer.src = song.src;
-    audioPlayer.play().catch(e => alert("Gagal memutar lagu. Pastikan file valid."));
-    console.log("Now Playing:", song.title);
-};
-
-// --- 3. PROFILE SYSTEM (FIXED & TESTED) ---
+// --- 2. PROFILE ENGINE (REPAIRED) ---
 const initProfile = () => {
-    // Ambil nama dari storage, jika kosong pakai "MASTER"
-    const savedName = localStorage.getItem('cc_user_name') || "MASTER";
-    const avatar = localStorage.getItem('cc_user_avatar');
+    // Ambil nama dari localStorage, jika kosong pakai 'MASTER'
+    const name = localStorage.getItem('cc_name') || "MASTER";
+    const avatar = localStorage.getItem('cc_avatar');
 
-    // Update elemen teks
-    document.getElementById('user-name-sidebar').innerText = savedName;
-    document.getElementById('edit-username').value = savedName;
+    // Update semua elemen nama di UI
+    document.getElementById('user-name-sidebar').innerText = name;
+    document.getElementById('edit-username').value = name;
 
-    // Update elemen gambar (Sidebar & Modal)
     const containers = [
         document.getElementById('user-avatar-sidebar'),
         document.getElementById('profile-avatar-large')
@@ -51,32 +40,21 @@ const initProfile = () => {
         if (avatar) {
             c.innerHTML = `<img src="${avatar}" class="w-full h-full object-cover">`;
         } else {
-            c.innerHTML = `<div class="w-full h-full bg-cyan-400 flex items-center justify-center text-black font-black text-xl">${savedName.charAt(0).toUpperCase()}</div>`;
+            c.innerHTML = `<div class="w-full h-full bg-cyan-400 flex items-center justify-center text-black font-black text-xl">${name[0]}</div>`;
         }
     });
 };
 
-// Fungsi ganti nama yang diperbaiki
 const saveProfile = () => {
-    const nameInput = document.getElementById('edit-username').value.trim();
-    
-    if (nameInput === "") {
-        alert("Nama tidak boleh kosong!");
-        return;
+    const inputName = document.getElementById('edit-username').value.trim();
+    if (inputName) {
+        localStorage.setItem('cc_name', inputName); // Simpan nama baru
+        initProfile(); // Refresh UI profile
+        alert("Master Profile Updated!");
+        closeModal('profile-modal');
     }
-
-    // 1. Simpan ke Local Storage
-    localStorage.setItem('cc_user_name', nameInput);
-    
-    // 2. Update UI secara instan tanpa reload
-    document.getElementById('user-name-sidebar').innerText = nameInput;
-    
-    alert("Profil Berhasil Diperbarui!");
-    closeProfileModal();
-    initProfile(); // Jalankan ulang untuk memastikan icon huruf berubah
 };
 
-// --- 4. AVATAR & CROPPER ---
 document.getElementById('avatar-input').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -94,59 +72,65 @@ document.getElementById('avatar-input').addEventListener('change', function(e) {
 
 const applyCrop = () => {
     if (!currentCropper) return;
-    const canvas = currentCropper.getCroppedCanvas({ width: 200, height: 200 });
-    const base64Avatar = canvas.toDataURL();
-    
-    localStorage.setItem('cc_user_avatar', base64Avatar);
+    const canvas = currentCropper.getCroppedCanvas({ width: 256, height: 256 });
+    localStorage.setItem('cc_avatar', canvas.toDataURL());
     document.getElementById('cropper-wrap').classList.add('hidden');
-    
-    alert("Foto berhasil dicrop!");
-    initProfile(); 
+    initProfile();
 };
 
-// --- 5. DATA LOGIC ---
+// --- 3. AUDIO ENGINE ---
+const playSong = (id) => {
+    const song = songDatabase.find(s => s.id == id);
+    if (song) {
+        audioPlayer.src = song.src;
+        audioPlayer.play().catch(e => alert("Click again to play!"));
+        console.log("Playing:", song.title);
+    }
+};
+
+// --- 4. DATA ENGINE ---
 const processUpload = async () => {
-    const audio = document.getElementById('file-audio').files[0];
-    const cover = document.getElementById('file-cover').files[0];
+    const audioF = document.getElementById('file-audio').files[0];
+    const coverF = document.getElementById('file-cover').files[0];
 
-    if (!audio) return alert("Pilih file MP3 dulu!");
+    if (!audioF) return alert("Select MP3!");
 
-    const song = {
+    const newSong = {
         id: Date.now(),
-        title: audio.name.replace(/\.[^/.]+$/, ""),
-        src: await toBase64(audio),
-        cover: cover ? await toBase64(cover) : 'assets/images/logo-ccdezz.jpg'
+        title: audioF.name.replace(/\.[^/.]+$/, ""),
+        src: await toBase64(audioF),
+        cover: coverF ? await toBase64(coverF) : 'assets/images/logo-ccdezz.jpg'
     };
 
-    songDatabase.push(song);
+    songDatabase.push(newSong);
     localStorage.setItem('cc_songs', JSON.stringify(songDatabase));
     renderTracks(songDatabase);
-    closeUploadModal();
+    closeModal('upload-modal');
 };
 
 const renderTracks = (data, title = "Vibe Station") => {
     const list = document.getElementById('master-track-list');
     document.getElementById('view-title').innerHTML = title.replace(" ", "<br>");
-    document.getElementById('track-count').innerText = `${data.length} Tracks`;
+    document.getElementById('track-count').innerText = `${data.length} TRACKS`;
     
     list.innerHTML = '';
     data.forEach(s => {
         const isLiked = likedSongs.includes(s.id);
         list.innerHTML += `
-            <div class="flex items-center gap-4 p-4 hover:bg-white/5 rounded-2xl group transition border border-transparent hover:border-white/5">
+            <div class="flex items-center gap-4 p-4 hover:bg-white/5 rounded-2xl group transition">
                 <div class="relative w-12 h-12 flex-shrink-0 cursor-pointer" onclick="playSong(${s.id})">
-                    <img src="${s.cover}" class="w-full h-full rounded-lg object-cover">
-                    <div class="absolute inset-0 bg-cyan-400/80 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition">
-                        <i class="fas fa-play text-black text-xs"></i>
+                    <img src="${s.cover}" class="w-full h-full rounded-lg object-cover shadow-lg">
+                    <div class="absolute inset-0 bg-cyan-400 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition text-black">
+                        <i class="fas fa-play text-xs"></i>
                     </div>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-black text-white uppercase truncate">${s.title}</p>
-                    <p class="text-[9px] text-gray-600 uppercase tracking-widest">Authorized Library</p>
+                    <p class="text-[9px] text-gray-500 font-bold">STATION_MEDIA_AUTH</p>
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="toggleLike(${s.id})" class="${isLiked ? 'liked' : 'text-gray-800'} transition-transform active:scale-125"><i class="fas fa-heart"></i></button>
-                    <button onclick="deleteSong(${s.id})" class="text-gray-900 group-hover:text-red-500 transition"><i class="fas fa-trash"></i></button>
+                    <button onclick="toggleLike(${s.id})" class="${isLiked ? 'liked' : 'text-gray-800'} transition"><i class="fas fa-heart"></i></button>
+                    <button onclick="deleteSong(${s.id})" class="text-gray-900 group-hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </div>`;
     });
@@ -160,7 +144,7 @@ const toggleLike = (id) => {
 };
 
 const deleteSong = (id) => {
-    if(confirm("Hapus lagu ini permanen?")) {
+    if(confirm("Delete Track?")) {
         songDatabase = songDatabase.filter(s => s.id !== id);
         localStorage.setItem('cc_songs', JSON.stringify(songDatabase));
         renderTracks(songDatabase);
@@ -174,30 +158,29 @@ const toBase64 = f => new Promise(res => {
     r.readAsDataURL(f);
 });
 
-const logout = () => { 
-    if(confirm("Keluar dari stasiun? Semua session akan dihapus.")) {
-        localStorage.removeItem('cc_session');
-        location.reload(); 
-    }
+const openModal = (id) => document.getElementById(id).classList.remove('hidden');
+const closeModal = (id) => {
+    document.getElementById(id).classList.add('hidden');
+    if(currentCropper) currentCropper.destroy();
 };
 
-const openUploadModal = () => document.getElementById('upload-modal').classList.remove('hidden');
-const closeUploadModal = () => document.getElementById('upload-modal').classList.add('hidden');
-const openProfileModal = () => {
-    initProfile();
-    document.getElementById('profile-modal').classList.remove('hidden');
-};
-const closeProfileModal = () => document.getElementById('profile-modal').classList.add('hidden');
 const renderLiked = () => renderTracks(songDatabase.filter(s => likedSongs.includes(s.id)), "Liked Songs");
+
+const logout = () => {
+    if(confirm("WIPE ALL DATA?")) {
+        localStorage.clear();
+        location.reload();
+    }
+};
 
 const initApp = () => {
     initProfile();
     renderTracks(songDatabase);
 };
 
-// Run when loaded
+// --- LOAD ---
 document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('cc_session') === 'authorized') {
+    if (localStorage.getItem('cc_auth') === 'true') {
         document.getElementById('auth-screen').classList.add('hidden');
         initApp();
     }
