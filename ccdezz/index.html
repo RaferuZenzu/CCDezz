@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CCDezz | Future of Audio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -10,128 +10,168 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         :root { --cc-bg: #030712; --cc-primary: #00F2FF; }
-        body { background-color: var(--cc-bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .sidebar-premium { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); }
+        body { background-color: var(--cc-bg); color: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        /* Glass Effect */
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Custom Sidebar for Desktop */
         .nav-link { transition: all 0.3s ease; border-left: 3px solid transparent; cursor: pointer; }
         .nav-link:hover, .nav-active { background: rgba(0, 242, 255, 0.05); border-left: 3px solid var(--cc-primary); color: var(--cc-primary); }
         
-        /* Background Dinamis menggunakan image.jpg sesuai perintah */
         #dynamic-header { 
-            background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.5), #030712), url('assets/images/bg-racing.jpg');
-            background-size: cover; background-position: center; transition: all 0.5s ease; 
+            background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.4), #030712), url('assets/images/bg-racing.jpg');
+            background-size: cover; background-position: center;
         }
-        
-        .avatar-circle { display: flex; align-items: center; justify-content: center; font-weight: 900; text-transform: uppercase; border-radius: 50%; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
         .liked { color: #ff4d4d !important; }
+        
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Auth Input Icon Wrapper */
+        .input-group { position: relative; }
+        .input-group i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row">
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <div id="auth-screen" class="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-[#030712]">
-        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl">
+    <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-[#030712]">
+        <div class="glass p-8 rounded-3xl w-full max-w-sm shadow-2xl">
             <div class="text-center mb-8">
-                <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter">CCDEZZ</h2>
-                <p id="auth-status" class="text-gray-500 text-[10px] uppercase tracking-widest mt-2">Masuk ke stasiun musikmu</p>
+                <h2 class="text-5xl font-black italic text-cyan-400 tracking-tighter shadow-cyan-500/20">CCDEZZ</h2>
+                <p id="auth-status" class="text-gray-500 text-[10px] uppercase tracking-[0.2em] mt-2">Sign in to your station</p>
             </div>
+            
             <div class="space-y-4">
-                <div id="signup-fields" class="hidden space-y-4">
-                    <input type="email" id="reg-email" placeholder="Email" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-white text-sm">
+                <div id="signup-fields" class="hidden animate-fade-in">
+                    <input type="email" id="reg-email" placeholder="Email Address" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none text-white text-sm mb-4 focus:border-cyan-400/50 transition">
                 </div>
-                <input type="text" id="auth-identifier" placeholder="Username atau Email" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-white text-sm">
-                <input type="password" id="auth-password" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none text-white text-sm">
-                <button onclick="handleAuth()" id="auth-btn" class="w-full bg-cyan-400 text-black font-black py-4 rounded-xl uppercase text-xs">Sign In</button>
-                <button onclick="toggleAuthMode()" id="auth-switch" class="w-full text-gray-500 text-[10px] font-bold">Sign Up</button>
+                
+                <input type="text" id="auth-identifier" placeholder="Username" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none text-white text-sm focus:border-cyan-400/50 transition">
+                
+                <div class="input-group">
+                    <input type="password" id="auth-password" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none text-white text-sm focus:border-cyan-400/50 transition">
+                    <i class="fas fa-eye" id="togglePassword" onclick="togglePasswordVisibility('auth-password', this)"></i>
+                </div>
+
+                <button onclick="handleAuth()" id="auth-btn" class="w-full bg-cyan-400 hover:bg-cyan-300 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all transform active:scale-95 shadow-lg shadow-cyan-400/20">Sign In</button>
+                
+                <p class="text-center text-[10px] text-gray-500 font-bold uppercase">
+                    <span id="switch-text">Don't have an account?</span> 
+                    <button onclick="toggleAuthMode()" id="auth-switch" class="text-cyan-400 ml-1">Sign Up</button>
+                </p>
             </div>
         </div>
     </div>
 
-    <aside class="hidden md:flex w-72 sidebar-premium flex-col border-r border-white/5 shadow-2xl z-50 h-full relative">
+    <aside class="hidden md:flex w-72 glass flex-col z-50 h-full relative">
         <div class="p-8 mb-4 flex items-center gap-3">
-            <img src="assets/images/logo-ccdezz.jpg" class="w-8 h-8 rounded-full border border-cyan-400">
+            <img src="assets/images/logo-ccdezz.jpg" class="w-8 h-8 rounded-full border border-cyan-400 object-cover">
             <span class="text-lg font-black italic tracking-widest text-white uppercase">CCDEZZ</span>
         </div>
 
-        <nav class="flex-1 px-4 space-y-6 overflow-y-auto pb-10">
-            <div>
-                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Utama</p>
-                <a onclick="renderTracks(songDatabase)" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg nav-active"><i class="fas fa-home"></i> Beranda</a>
-                <a onclick="renderLiked()" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg"><i class="fas fa-heart text-red-500"></i> Disukai</a>
-                <a onclick="openUploadModal()" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg"><i class="fas fa-plus-circle text-cyan-400"></i> Tambah Lagu</a>
-            </div>
+        <nav class="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
+            <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Menu</p>
+            <a onclick="renderTracks(songDatabase)" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-xl nav-active"><i class="fas fa-home"></i> Home</a>
+            <a onclick="renderLiked()" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-xl"><i class="fas fa-heart"></i> Liked Songs</a>
+            <a onclick="openUploadModal()" class="nav-link flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-xl"><i class="fas fa-plus-circle"></i> Add Music</a>
             
-            <div>
+            <div class="pt-6">
                 <div class="flex justify-between items-center px-4 mb-4">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Playlist Saya</p>
-                    <button onclick="createPlaylist()" class="text-cyan-400 text-xs hover:scale-110 transition"><i class="fas fa-plus"></i></button>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Playlists</p>
+                    <button onclick="createPlaylist()" class="text-cyan-400 text-xs hover:rotate-90 transition-all"><i class="fas fa-plus"></i></button>
                 </div>
                 <div id="playlist-nav" class="space-y-1"></div>
             </div>
         </nav>
 
-        <div class="p-6 border-t border-white/5 bg-black/20">
-            <button onclick="openProfileModal()" class="flex items-center gap-3 w-full hover:bg-white/5 p-2 rounded-lg transition text-left group">
-                <div id="user-avatar-container" class="w-10 h-10 overflow-hidden rounded-full"></div>
+        <div class="p-6 border-t border-white/5">
+            <button onclick="openProfileModal()" class="flex items-center gap-3 w-full hover:bg-white/5 p-3 rounded-2xl transition group">
+                <div id="user-avatar-container" class="w-10 h-10 overflow-hidden rounded-full ring-2 ring-cyan-400/20"></div>
                 <div class="overflow-hidden">
                     <p id="user-display-name" class="text-xs font-bold truncate text-white uppercase">User</p>
-                    <p id="user-display-email" class="text-[9px] text-gray-500 truncate lowercase">@email</p>
+                    <p id="user-display-email" class="text-[9px] text-gray-500 truncate">@member</p>
                 </div>
-                <i class="fas fa-cog ml-auto text-[10px] text-gray-500 opacity-0 group-hover:opacity-100"></i>
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto bg-[#030712] relative flex flex-col h-full">
-        <header id="dynamic-header" class="min-h-[35vh] md:min-h-[45vh] p-6 md:p-10 flex flex-col justify-end">
-            <h2 id="view-title" class="text-5xl md:text-8xl font-black italic tracking-tighter mb-2 uppercase text-white drop-shadow-2xl">Vibe<br>Station</h2>
-            <p id="track-count" class="text-cyan-400 text-[10px] font-bold uppercase tracking-[0.3em]">0 Tracks</p>
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass z-[100] flex justify-around items-center p-4 rounded-t-3xl">
+        <button onclick="renderTracks(songDatabase)" class="text-cyan-400 flex flex-col items-center gap-1">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-[9px] uppercase font-bold">Home</span>
+        </button>
+        <button onclick="renderLiked()" class="text-gray-400 flex flex-col items-center gap-1">
+            <i class="fas fa-heart text-xl"></i>
+            <span class="text-[9px] uppercase font-bold">Liked</span>
+        </button>
+        <button onclick="openUploadModal()" class="bg-cyan-400 text-black w-12 h-12 rounded-2xl -mt-10 shadow-lg shadow-cyan-400/40 flex items-center justify-center">
+            <i class="fas fa-plus text-xl"></i>
+        </button>
+        <button onclick="createPlaylist()" class="text-gray-400 flex flex-col items-center gap-1">
+            <i class="fas fa-list text-xl"></i>
+            <span class="text-[9px] uppercase font-bold">List</span>
+        </button>
+        <button onclick="openProfileModal()" class="text-gray-400 flex flex-col items-center gap-1">
+            <i class="fas fa-user text-xl"></i>
+            <span class="text-[9px] uppercase font-bold">Profile</span>
+        </button>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col h-full pb-24 md:pb-0">
+        <header id="dynamic-header" class="min-h-[40vh] p-8 md:p-12 flex flex-col justify-end">
+            <h2 id="view-title" class="text-6xl md:text-9xl font-black italic tracking-tighter uppercase text-white drop-shadow-2xl leading-[0.8]">Vibe<br>Station</h2>
+            <div class="flex items-center gap-4 mt-6">
+                <span id="track-count" class="bg-cyan-400 text-black text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest">0 Tracks</span>
+            </div>
         </header>
 
-        <section class="p-4 md:p-10 pb-20">
-            <div id="master-track-list" class="space-y-1"></div>
+        <section class="p-4 md:p-10">
+            <div id="master-track-list" class="grid grid-cols-1 gap-2"></div>
         </section>
     </main>
 
-    <div id="upload-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[400] hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-lg shadow-2xl">
-            <h3 class="text-white font-black text-center mb-6 uppercase tracking-widest">Upload Lagu Baru</h3>
+    <div id="upload-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[500] hidden flex items-center justify-center p-4">
+        <div class="glass p-6 md:p-8 rounded-3xl w-full max-w-lg">
+            <h3 class="text-white font-black text-center mb-6 uppercase tracking-[0.3em]">Add New Track</h3>
             <div class="space-y-4">
-                <div class="p-6 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center">
-                    <label class="text-[10px] font-bold text-purple-400 uppercase block mb-2">Pilih File MP3</label>
-                    <input type="file" id="file-audio" accept="audio/*" class="w-full text-xs text-gray-500 cursor-pointer">
+                <div class="group relative">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase ml-2 mb-1 block">Audio File (MP3)</label>
+                    <input type="file" id="file-audio" accept="audio/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs text-gray-400">
                 </div>
-                <div class="p-4 bg-white/5 rounded-2xl">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Cover Lagu (Gambar)</label>
-                    <input type="file" id="file-cover" accept="image/*" class="w-full text-xs text-gray-500">
+                <div class="group relative">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase ml-2 mb-1 block">Cover Art</label>
+                    <input type="file" id="file-cover" accept="image/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs text-gray-400">
                 </div>
             </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="processUpload()" class="flex-1 bg-cyan-400 text-black font-black py-4 rounded-xl uppercase text-[10px]">Simpan ke Library</button>
-                <button onclick="closeUploadModal()" class="flex-1 border border-white/10 text-white font-black py-4 rounded-xl uppercase text-[10px]">Batal</button>
+            <div class="flex flex-col md:flex-row gap-3 mt-8">
+                <button onclick="processUpload()" class="flex-1 bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest">Save Track</button>
+                <button onclick="closeUploadModal()" class="flex-1 bg-white/5 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="profile-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[400] hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl">
-            <h3 class="text-white font-black text-center mb-6 uppercase">Profil & Akun</h3>
+    <div id="profile-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[500] hidden flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-3xl w-full max-w-md">
+            <div class="text-center mb-6">
+                <div id="profile-preview-large" class="w-24 h-24 mx-auto rounded-full border-4 border-cyan-400/20 mb-4 overflow-hidden"></div>
+                <h3 class="text-white font-black uppercase tracking-widest">Account Settings</h3>
+            </div>
             <div class="space-y-4">
-                <input type="text" id="edit-username" placeholder="Username Baru" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none">
-                <div class="text-center">
-                    <input type="file" id="edit-avatar-input" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('edit-avatar-input').click()" class="text-cyan-400 text-[10px] font-bold uppercase border border-cyan-400/20 px-4 py-2 rounded-lg">Ubah Foto Profil</button>
+                <input type="text" id="edit-username" placeholder="Change Username" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm text-white outline-none">
+                <button onclick="document.getElementById('edit-avatar-input').click()" class="w-full border border-cyan-400/30 text-cyan-400 text-[10px] font-black py-3 rounded-xl uppercase">Update Photo</button>
+                <input type="file" id="edit-avatar-input" accept="image/*" class="hidden">
+                
+                <div id="cropper-container" class="hidden animate-pulse">
+                    <img id="crop-preview" class="max-h-48 mx-auto rounded-xl">
+                    <button onclick="saveCroppedAvatar()" class="mt-4 w-full bg-white text-black font-black py-2 rounded-xl text-[10px] uppercase">Apply Crop</button>
                 </div>
-                <div id="cropper-container" class="hidden">
-                    <img id="crop-preview" class="max-w-full rounded-xl mt-4">
-                    <button onclick="saveCroppedAvatar()" class="mt-4 w-full bg-white text-black font-black py-2 rounded-lg text-[10px] uppercase">Crop & Simpan</button>
-                </div>
-                <button onclick="deleteAccount()" class="w-full text-red-500 text-[10px] font-bold py-2 uppercase opacity-50 hover:opacity-100 transition">Hapus Akun & Data Permanen</button>
+                
+                <button onclick="logout()" class="w-full bg-red-500/10 text-red-500 text-[10px] font-black py-4 rounded-2xl uppercase mt-4">Log Out</button>
             </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="saveProfile()" class="flex-1 bg-cyan-400 text-black font-black py-4 rounded-xl uppercase text-[10px]">Update Profil</button>
-                <button onclick="closeProfileModal()" class="flex-1 border border-white/10 text-white font-black py-4 rounded-xl uppercase text-[10px]">Tutup</button>
-            </div>
+            <button onclick="closeProfileModal()" class="w-full text-gray-500 text-[10px] font-bold uppercase mt-6 tracking-widest">Close Window</button>
         </div>
     </div>
 
