@@ -9,10 +9,10 @@
     <style>
         :root { --cc-bg: #020617; --cc-primary: #00F2FF; }
         
-        /* Background Racing Utama */
+        /* FIX PATH BACKGROUND */
         body { 
             background: linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.7)), 
-                        url('./assets/images/bg-racing.jpg');
+                        url('assets/images/bg-racing.jpg'); /* Tanpa titik di depan untuk kompatibilitas */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -28,15 +28,13 @@
         .playing-now { border-left: 4px solid var(--cc-primary); background: rgba(0, 242, 255, 0.05); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Animasi Tombol Tengah */
-        .btn-center-pulse { animation: shadow-pulse 2s infinite; }
         @keyframes shadow-pulse {
             0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
             70% { box-shadow: 0 0 0 20px rgba(0, 242, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
         }
+        .btn-center-pulse { animation: shadow-pulse 2s infinite; }
 
-        /* Logo Styling */
         .cc-logo {
             width: 40px;
             height: 40px;
@@ -52,7 +50,7 @@
 
     <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-[#020617]/95">
         <div class="glass p-8 md:p-12 rounded-[40px] w-full max-w-sm text-center border border-cyan-400/20">
-            <img src="./assets/images/logo-ccdezz.jpg" alt="Logo" class="w-24 h-24 mx-auto rounded-full mb-6 border-4 border-cyan-400 shadow-lg shadow-cyan-400/20">
+            <img src="assets/images/logo-ccdezz.jpg" alt="Logo" class="w-24 h-24 mx-auto rounded-full mb-6 border-4 border-cyan-400 shadow-lg shadow-cyan-400/20">
             <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter mb-8 uppercase">CCDEZZ Station</h2>
             <input type="password" id="master-key" placeholder="PASSCODE" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white outline-none mb-6 focus:border-cyan-400 transition-all font-mono">
             <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition shadow-lg shadow-cyan-400/20">Login</button>
@@ -61,7 +59,7 @@
 
     <aside class="hidden md:flex w-64 lg:w-72 glass flex-col z-50 h-full border-r border-white/5">
         <div class="p-8 mb-4 flex items-center gap-3">
-            <img src="./assets/images/logo-ccdezz.jpg" class="cc-logo" alt="C">
+            <img src="assets/images/logo-ccdezz.jpg" class="cc-logo" alt="Logo">
             <span class="text-lg font-black italic tracking-widest text-white uppercase">CCDEZZ</span>
         </div>
         
@@ -88,8 +86,7 @@
         </header>
 
         <section class="p-4 md:p-10 max-w-6xl mx-auto">
-            <div id="master-track-list" class="grid grid-cols-1 gap-2">
-                </div>
+            <div id="master-track-list" class="grid grid-cols-1 gap-2"></div>
         </section>
     </main>
 
@@ -104,9 +101,8 @@
             <h3 class="text-white font-black uppercase tracking-widest text-lg mb-8 italic text-center">Upload Track</h3>
             <div class="space-y-5">
                 <input type="text" id="track-name" placeholder="JUDUL LAGU (WAJIB)" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-white outline-none focus:border-cyan-400 text-sm">
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="relative">
+                    <div>
                         <label class="text-[10px] font-black text-gray-500 uppercase mb-2 block ml-2">Audio File</label>
                         <input type="file" id="file-audio" accept="audio/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-[10px] text-gray-400">
                     </div>
@@ -115,7 +111,6 @@
                         <input type="file" id="file-cover" accept="image/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-[10px] text-gray-400">
                     </div>
                 </div>
-
                 <button id="upload-btn" onclick="processUpload()" class="w-full bg-cyan-400 text-black font-black py-5 rounded-2xl uppercase text-xs mt-4 shadow-xl shadow-cyan-400/20 active:scale-95 transition-all">Add to Station</button>
                 <button onclick="closeUploadModal()" class="w-full text-gray-500 font-bold py-2 text-[10px] uppercase tracking-widest">Cancel</button>
             </div>
