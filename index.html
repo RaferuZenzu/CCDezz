@@ -2,14 +2,27 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>CCDezz | Music Station</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --cc-bg: #020617; --cc-primary: #00F2FF; }
-        body { background-color: var(--cc-bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Background Racing Utama */
+        body { 
+            background: linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.7)), 
+                        url('assets/bg-racing.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            height: 100vh;
+        }
+
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .nav-link { transition: all 0.3s; cursor: pointer; border-radius: 12px; }
         .nav-link:hover, .nav-active { background: rgba(0, 242, 255, 0.1); color: var(--cc-primary); }
         .playing-now { border-left: 4px solid var(--cc-primary); background: rgba(0, 242, 255, 0.05); }
@@ -18,27 +31,37 @@
         /* Animasi Tombol Tengah */
         .btn-center-pulse { animation: shadow-pulse 2s infinite; }
         @keyframes shadow-pulse {
-            0% { shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
             70% { box-shadow: 0 0 0 20px rgba(0, 242, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
         }
+
+        /* Logo Styling */
+        .cc-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--cc-primary);
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+<body class="flex flex-col md:flex-row overflow-hidden">
 
     <audio id="main-audio-player" class="hidden"></audio>
 
-    <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-[#020617]">
+    <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-[#020617]/95">
         <div class="glass p-8 md:p-12 rounded-[40px] w-full max-w-sm text-center border border-cyan-400/20">
-            <h2 class="text-5xl font-black italic text-cyan-400 tracking-tighter mb-8">CCDEZZ</h2>
+            <img src="assets/logo-ccdezz.jpg" alt="Logo" class="w-24 h-24 mx-auto rounded-full mb-6 border-4 border-cyan-400 shadow-lg shadow-cyan-400/20">
+            <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter mb-8 uppercase">CCDEZZ Station</h2>
             <input type="password" id="master-key" placeholder="PASSCODE" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white outline-none mb-6 focus:border-cyan-400 transition-all font-mono">
-            <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition shadow-lg shadow-cyan-400/20">Login Station</button>
+            <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition shadow-lg shadow-cyan-400/20">Login</button>
         </div>
     </div>
 
     <aside class="hidden md:flex w-64 lg:w-72 glass flex-col z-50 h-full border-r border-white/5">
         <div class="p-8 mb-4 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-cyan-400 flex items-center justify-center text-black font-black italic text-xs">C</div>
+            <img src="assets/logo-ccdezz.jpg" class="cc-logo" alt="C">
             <span class="text-lg font-black italic tracking-widest text-white uppercase">CCDEZZ</span>
         </div>
         
@@ -59,8 +82,8 @@
     </aside>
 
     <main class="flex-1 overflow-y-auto no-scrollbar pb-32 md:pb-10 relative">
-        <header class="min-h-[35vh] md:min-h-[40vh] p-6 md:p-12 flex flex-col justify-end bg-gradient-to-b from-cyan-900/20 to-[#020617]">
-            <h2 id="view-title" class="text-5xl md:text-8xl lg:text-9xl font-black italic tracking-tighter uppercase text-white leading-[0.85]">Vibe<br>Station</h2>
+        <header class="min-h-[35vh] md:min-h-[40vh] p-6 md:p-12 flex flex-col justify-end bg-gradient-to-b from-cyan-900/40 to-transparent">
+            <h2 id="view-title" class="text-5xl md:text-8xl lg:text-9xl font-black italic tracking-tighter uppercase text-white leading-[0.85] drop-shadow-2xl">Vibe<br>Station</h2>
             <div id="track-count" class="mt-6 bg-cyan-400 text-black inline-block self-start px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-400/20">0 Tracks</div>
         </header>
 
