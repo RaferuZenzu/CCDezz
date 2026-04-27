@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CCDezz | Music Station</title>
+    <title>CCDezz | Private Audio Station</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -13,101 +13,85 @@
         .nav-link { transition: all 0.3s; cursor: pointer; border-radius: 12px; }
         .nav-link:hover, .nav-active { background: rgba(0, 242, 255, 0.1); color: var(--cc-primary); }
         #dynamic-header { 
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.5), #020617), url('assets/images/bg-racing.jpg');
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.3), #020617), url('assets/images/bg-racing.jpg');
             background-size: cover; background-position: center;
         }
-        .liked { color: #ff4d4d !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Music Player Bar Animation */
-        #player-bar { transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .player-show { transform: translateY(0); }
-        .player-hide { transform: translateY(150%); }
+        .liked { color: #ff4d4d !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row">
 
+    <audio id="main-audio-player" class="hidden"></audio>
+
     <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-[#020617]">
         <div class="glass p-10 rounded-[40px] w-full max-w-sm text-center">
-            <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter mb-8">CCDEZZ</h2>
-            <input type="password" id="master-key" placeholder="MASTER KEY" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white outline-none mb-6 focus:border-cyan-400 transition-all">
-            <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition">Access Station</button>
+            <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter mb-8 text-shadow-lg shadow-cyan-500/50">CCDEZZ</h2>
+            <input type="password" id="master-key" placeholder="ENTER MASTER KEY" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white outline-none mb-6 focus:border-cyan-400 transition-all font-mono">
+            <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition">Authorize Access</button>
         </div>
     </div>
 
     <aside class="hidden md:flex w-72 glass flex-col z-50 h-full">
         <div class="p-8 mb-4 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-cyan-400 flex items-center justify-center text-black font-black italic text-xs">C</div>
+            <div class="w-8 h-8 rounded-full bg-cyan-400 flex items-center justify-center text-black font-black italic text-xs shadow-lg shadow-cyan-400/20">C</div>
             <span class="text-lg font-black italic tracking-widest text-white uppercase">CCDEZZ</span>
         </div>
+        
         <nav class="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
+            <p class="px-5 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Library</p>
             <a onclick="renderTracks(songDatabase)" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold nav-active"><i class="fas fa-home"></i> Home</a>
-            <a onclick="renderLiked()" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold"><i class="fas fa-heart text-red-500"></i> Liked Songs</a>
-            <a onclick="openUploadModal()" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold"><i class="fas fa-plus-circle text-cyan-400"></i> Add Track</a>
+            <a onclick="renderLiked()" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold"><i class="fas fa-heart"></i> Liked Tracks</a>
+            <a onclick="openUploadModal()" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold"><i class="fas fa-cloud-upload-alt text-cyan-400"></i> Add Music</a>
         </nav>
+
         <div class="p-6 border-t border-white/5">
-            <button onclick="openProfileModal()" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-white/5 transition">
-                <div id="user-avatar-initial" class="w-10 h-10 rounded-full bg-cyan-400 flex items-center justify-center text-black font-black text-xs">M</div>
-                <div class="text-left">
-                    <p id="user-name-sidebar" class="text-xs font-black text-white truncate uppercase tracking-tighter">MASTER</p>
-                    <p class="text-[9px] text-gray-500 uppercase">Settings</p>
+            <div class="flex items-center gap-3 w-full p-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
+                    <i class="fas fa-user-shield text-cyan-400 text-xs"></i>
                 </div>
-            </button>
+                <div class="text-left">
+                    <p class="text-[10px] font-black text-white uppercase truncate">Station Owner</p>
+                    <p class="text-[8px] text-gray-600 uppercase tracking-tighter italic">Authenticated</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 py-3 rounded-xl text-[10px] font-black uppercase transition tracking-widest">Logout & Lock</button>
         </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto no-scrollbar pb-32">
-        <header id="dynamic-header" class="min-h-[40vh] p-8 md:p-12 flex flex-col justify-end">
-            <h2 id="view-title" class="text-6xl md:text-9xl font-black italic tracking-tighter uppercase text-white leading-[0.8]">Vibe<br>Station</h2>
-            <div id="track-count" class="mt-4 inline-block bg-cyan-400 text-black text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest">0 Tracks</div>
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass z-[100] flex justify-around p-4 rounded-t-[30px] border-t border-white/5">
+        <button onclick="renderTracks(songDatabase)" class="text-cyan-400 p-2"><i class="fas fa-home text-xl"></i></button>
+        <button onclick="openUploadModal()" class="bg-cyan-400 text-black w-14 h-14 rounded-full -mt-10 shadow-2xl flex items-center justify-center border-4 border-[#020617]"><i class="fas fa-plus text-xl"></i></button>
+        <button onclick="logout()" class="text-red-500 p-2"><i class="fas fa-power-off text-xl"></i></button>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-0">
+        <header id="dynamic-header" class="min-h-[40vh] p-8 md:p-12 flex flex-col justify-end transition-all duration-700">
+            <h2 id="view-title" class="text-6xl md:text-9xl font-black italic tracking-tighter uppercase text-white drop-shadow-2xl leading-[0.8]">Vibe<br>Station</h2>
+            <div id="track-count" class="mt-6 bg-cyan-400 text-black inline-block self-start px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">0 Tracks</div>
         </header>
-        
-        <section class="p-4 md:p-10">
+
+        <section class="p-4 md:p-10 max-w-5xl mx-auto">
             <div id="master-track-list" class="space-y-2"></div>
         </section>
     </main>
 
-    <div id="player-bar" class="fixed bottom-4 left-4 right-4 md:left-72 md:bottom-6 glass rounded-3xl p-4 z-[200] flex items-center justify-between gap-4 player-hide">
-        <div class="flex items-center gap-3 min-w-0">
-            <img id="player-cover" src="" class="w-12 h-12 rounded-xl object-cover shadow-lg">
-            <div class="min-w-0">
-                <p id="player-title" class="text-xs font-black text-white truncate uppercase tracking-tighter w-24 md:w-48">No Song</p>
-                <p class="text-[9px] text-cyan-400 font-bold uppercase">Now Playing</p>
-            </div>
-        </div>
-        
-        <audio id="audio-engine"></audio>
-        
-        <div class="flex items-center gap-6">
-            <button onclick="togglePlay()" id="play-btn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center text-xs transition active:scale-90">
-                <i class="fas fa-play ml-1"></i>
-            </button>
-            <button onclick="closePlayer()" class="text-gray-500 hover:text-white transition">
-                <i class="fas fa-times text-xs"></i>
-            </button>
-        </div>
-    </div>
-
     <div id="upload-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[500] hidden flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[35px] w-full max-w-lg">
-            <h3 class="text-white font-black text-center mb-8 uppercase tracking-widest">New Track</h3>
-            <div class="space-y-6">
-                <input type="file" id="file-audio" accept="audio/mp3" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs text-gray-400">
-                <input type="file" id="file-cover" accept="image/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs text-gray-400">
-                <button onclick="processUpload()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest">Add to Station</button>
-                <button onclick="closeUploadModal()" class="w-full text-gray-500 text-[10px] font-bold uppercase">Cancel</button>
+        <div class="glass p-8 rounded-[35px] w-full max-w-lg shadow-2xl border border-cyan-400/10">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-white font-black uppercase tracking-widest text-sm">New Audio Upload</h3>
+                <button onclick="closeUploadModal()" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
             </div>
-        </div>
-    </div>
-
-    <div id="profile-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[500] hidden flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[35px] w-full max-w-md text-center">
-            <h3 class="text-white font-black uppercase tracking-widest mb-6">Master Profile</h3>
-            <input type="text" id="edit-username" placeholder="Master Name" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white font-black uppercase text-sm mb-6 outline-none focus:border-cyan-400 transition-all">
-            <div class="flex flex-col gap-3">
-                <button onclick="updateNameOnly()" class="w-full bg-cyan-400 text-black py-4 rounded-2xl font-black uppercase text-xs">Save Changes</button>
-                <button onclick="closeProfileModal()" class="w-full text-gray-500 text-[10px] font-bold uppercase">Close</button>
-                <button onclick="logout()" class="mt-4 text-red-500 py-2 font-black uppercase text-[9px] tracking-widest opacity-40 hover:opacity-100 transition">Reset Station</button>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[9px] font-black text-gray-500 uppercase ml-2 mb-2 block">Audio File (MP3/WAV)</label>
+                    <input type="file" id="file-audio" accept="audio/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs text-gray-400 file:hidden">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-gray-500 uppercase ml-2 mb-2 block">Cover Art (Optional)</label>
+                    <input type="file" id="file-cover" accept="image/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs text-gray-400 file:hidden">
+                </div>
+                <button id="upload-btn" onclick="processUpload()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs shadow-lg shadow-cyan-400/20 active:scale-95 transition-all mt-4">Save to Library</button>
             </div>
         </div>
     </div>
