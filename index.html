@@ -3,116 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>CCDezz | Music Station</title>
+    <title>CCDezz | Music Station Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --cc-bg: #020617; --cc-primary: #00F2FF; }
-        
-        /* FIX PATH BACKGROUND */
         body { 
-            background: linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.7)), 
-                        url('assets/images/bg-racing.jpg'); /* Tanpa titik di depan untuk kompatibilitas */
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #f8fafc; 
-            font-family: 'Inter', sans-serif; 
-            overflow: hidden; 
-            height: 100vh;
+            background: linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.8)), url('assets/images/bg-racing.jpg');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh;
         }
-
-        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
-        .nav-link { transition: all 0.3s; cursor: pointer; border-radius: 12px; }
-        .nav-link:hover, .nav-active { background: rgba(0, 242, 255, 0.1); color: var(--cc-primary); }
-        .playing-now { border-left: 4px solid var(--cc-primary); background: rgba(0, 242, 255, 0.05); }
+        .glass { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        @keyframes shadow-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
-            70% { box-shadow: 0 0 0 20px rgba(0, 242, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
-        }
-        .btn-center-pulse { animation: shadow-pulse 2s infinite; }
-
-        .cc-logo {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid var(--cc-primary);
-        }
+        /* Progress Bar Styling */
+        input[type="range"] { accent-color: var(--cc-primary); cursor: pointer; }
+        
+        /* Player Bar Animation */
+        #player-bar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .playing-now { border-left: 4px solid var(--cc-primary); background: rgba(0, 242, 255, 0.1); }
+        
+        .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body class="flex flex-col md:flex-row overflow-hidden">
 
-    <audio id="main-audio-player" class="hidden"></audio>
+    <audio id="main-audio-player"></audio>
 
-    <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-[#020617]/95">
+    <div id="auth-screen" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-[#020617]">
         <div class="glass p-8 md:p-12 rounded-[40px] w-full max-w-sm text-center border border-cyan-400/20">
-            <img src="assets/images/logo-ccdezz.jpg" alt="Logo" class="w-24 h-24 mx-auto rounded-full mb-6 border-4 border-cyan-400 shadow-lg shadow-cyan-400/20">
-            <h2 class="text-4xl font-black italic text-cyan-400 tracking-tighter mb-8 uppercase">CCDEZZ Station</h2>
-            <input type="password" id="master-key" placeholder="PASSCODE" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white outline-none mb-6 focus:border-cyan-400 transition-all font-mono">
-            <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition shadow-lg shadow-cyan-400/20">Login</button>
+            <img src="assets/images/logo-ccdezz.jpg" class="w-24 h-24 mx-auto rounded-full mb-6 border-4 border-cyan-400 shadow-lg shadow-cyan-400/20">
+            <h2 class="text-3xl font-black italic text-cyan-400 mb-8 uppercase">CCDEZZ LOGIN</h2>
+            <input type="password" id="master-key" placeholder="PASSCODE" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-white outline-none mb-6 focus:border-cyan-400">
+            <button onclick="checkMasterKey()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase tracking-widest active:scale-95 transition">Login Station</button>
         </div>
     </div>
 
     <aside class="hidden md:flex w-64 lg:w-72 glass flex-col z-50 h-full border-r border-white/5">
         <div class="p-8 mb-4 flex items-center gap-3">
-            <img src="assets/images/logo-ccdezz.jpg" class="cc-logo" alt="Logo">
-            <span class="text-lg font-black italic tracking-widest text-white uppercase">CCDEZZ</span>
+            <img src="assets/images/logo-ccdezz.jpg" class="w-10 h-10 rounded-full border border-cyan-400">
+            <span class="text-lg font-black italic text-white">CCDEZZ</span>
         </div>
-        
         <nav class="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
-            <p class="px-5 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Library</p>
-            <a onclick="renderTracks(songDatabase)" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold nav-active"><i class="fas fa-home"></i> Home</a>
-            <a onclick="renderLiked()" class="nav-link flex items-center gap-4 px-5 py-4 text-sm font-bold"><i class="fas fa-heart"></i> Liked</a>
-            
-            <p class="px-5 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mt-6 mb-4">Playlists</p>
-            <div id="playlist-nav-list" class="space-y-1"></div>
-            <button onclick="createNewPlaylist()" class="w-full mt-4 text-[10px] font-bold text-cyan-400 uppercase tracking-[0.2em] py-3 hover:bg-cyan-400/10 rounded-xl transition border border-dashed border-cyan-400/20">+ New Playlist</button>
+            <a onclick="renderTracks(songDatabase)" class="flex items-center gap-4 px-5 py-4 text-sm font-bold hover:bg-white/5 rounded-xl cursor-pointer text-cyan-400"><i class="fas fa-home"></i> Home</a>
+            <a onclick="renderLiked()" class="flex items-center gap-4 px-5 py-4 text-sm font-bold hover:bg-white/5 rounded-xl cursor-pointer"><i class="fas fa-heart"></i> Liked</a>
+            <div id="playlist-nav-list" class="mt-4"></div>
+            <button onclick="createNewPlaylist()" class="w-full mt-4 text-[10px] font-bold text-cyan-400 uppercase py-3 border border-dashed border-cyan-400/20 rounded-xl">+ New Playlist</button>
         </nav>
-
-        <div class="p-6 border-t border-white/5 space-y-3">
-            <button onclick="openUploadModal()" class="w-full bg-white text-black font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest hover:bg-cyan-400 transition-all">Add Music</button>
-            <button onclick="logout()" class="w-full bg-red-500/10 text-red-500 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition">Exit</button>
+        <div class="p-6 border-t border-white/5">
+            <button onclick="openUploadModal()" class="w-full bg-white text-black font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest mb-2">Add Music</button>
+            <button onclick="logout()" class="w-full text-red-500 text-[10px] font-bold uppercase">Exit</button>
         </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto no-scrollbar pb-32 md:pb-10 relative">
-        <header class="min-h-[35vh] md:min-h-[40vh] p-6 md:p-12 flex flex-col justify-end bg-gradient-to-b from-cyan-900/40 to-transparent">
-            <h2 id="view-title" class="text-5xl md:text-8xl lg:text-9xl font-black italic tracking-tighter uppercase text-white leading-[0.85] drop-shadow-2xl">Vibe<br>Station</h2>
-            <div id="track-count" class="mt-6 bg-cyan-400 text-black inline-block self-start px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-400/20">0 Tracks</div>
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-40 relative">
+        <header class="min-h-[30vh] p-8 md:p-12 flex flex-col justify-end">
+            <h2 id="view-title" class="text-6xl md:text-8xl font-black italic uppercase text-white leading-none">Vibe<br>Station</h2>
+            <div id="track-count" class="mt-4 bg-cyan-400 text-black inline-block self-start px-4 py-1 rounded-full text-[10px] font-black uppercase">0 Tracks</div>
         </header>
-
-        <section class="p-4 md:p-10 max-w-6xl mx-auto">
-            <div id="master-track-list" class="grid grid-cols-1 gap-2"></div>
-        </section>
+        <section class="p-4 md:p-10 max-w-6xl mx-auto" id="master-track-list"></section>
     </main>
 
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass z-[100] flex justify-around items-center p-5 rounded-t-[40px] border-t border-white/10 shadow-2xl">
-        <button onclick="renderTracks(songDatabase)" class="text-cyan-400 text-2xl"><i class="fas fa-th-large"></i></button>
-        <button onclick="openUploadModal()" class="bg-cyan-400 text-black w-16 h-16 rounded-full -mt-12 shadow-2xl flex items-center justify-center border-8 border-[#020617] active:scale-90 transition-transform"><i class="fas fa-plus text-2xl"></i></button>
-        <button onclick="renderLiked()" class="text-white text-2xl"><i class="fas fa-heart"></i></button>
-    </nav>
-
-    <div id="upload-modal" class="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[500] hidden flex items-center justify-center p-4">
-        <div class="glass p-8 md:p-10 rounded-[40px] w-full max-w-lg border border-white/10">
-            <h3 class="text-white font-black uppercase tracking-widest text-lg mb-8 italic text-center">Upload Track</h3>
-            <div class="space-y-5">
-                <input type="text" id="track-name" placeholder="JUDUL LAGU (WAJIB)" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-white outline-none focus:border-cyan-400 text-sm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black text-gray-500 uppercase mb-2 block ml-2">Audio File</label>
-                        <input type="file" id="file-audio" accept="audio/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-[10px] text-gray-400">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-gray-500 uppercase mb-2 block ml-2">Cover Art</label>
-                        <input type="file" id="file-cover" accept="image/*" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-[10px] text-gray-400">
+    <div id="player-bar" class="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-4 z-[200] transform translate-y-full md:translate-y-0">
+        <div class="max-w-7xl mx-auto flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <span id="time-current" class="text-[10px] font-mono text-gray-400">0:00</span>
+                <input type="range" id="progress-range" value="0" class="flex-1 h-1 bg-white/10 rounded-lg appearance-none">
+                <span id="time-total" class="text-[10px] font-mono text-gray-400">0:00</span>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 w-1/3">
+                    <img id="p-cover" src="assets/images/logo-ccdezz.jpg" class="w-12 h-12 rounded-lg object-cover border border-white/10">
+                    <div class="min-w-0">
+                        <h4 id="p-title" class="text-sm font-black text-white truncate uppercase tracking-tighter">Not Playing</h4>
+                        <p class="text-[10px] text-cyan-400 font-bold uppercase">CCDEZZ STATION</p>
                     </div>
                 </div>
-                <button id="upload-btn" onclick="processUpload()" class="w-full bg-cyan-400 text-black font-black py-5 rounded-2xl uppercase text-xs mt-4 shadow-xl shadow-cyan-400/20 active:scale-95 transition-all">Add to Station</button>
-                <button onclick="closeUploadModal()" class="w-full text-gray-500 font-bold py-2 text-[10px] uppercase tracking-widest">Cancel</button>
+
+                <div class="flex flex-col items-center gap-1">
+                    <div class="flex items-center gap-6 md:gap-8">
+                        <button onclick="prevSong()" class="text-white hover:text-cyan-400 transition"><i class="fas fa-step-backward text-xl"></i></button>
+                        <button onclick="togglePlay()" id="play-btn" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition">
+                            <i class="fas fa-play text-xl"></i>
+                        </button>
+                        <button onclick="nextSong()" class="text-white hover:text-cyan-400 transition"><i class="fas fa-step-forward text-xl"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 w-1/3">
+                    <i class="fas fa-volume-up text-gray-400 hidden md:block"></i>
+                    <input type="range" id="volume-range" min="0" max="1" step="0.01" value="1" class="w-24 hidden md:block">
+                    <button onclick="openUploadModal()" class="md:hidden text-cyan-400"><i class="fas fa-plus-circle text-2xl"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="upload-modal" class="fixed inset-0 bg-black/95 z-[500] hidden flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[40px] w-full max-w-lg border border-white/10">
+            <h3 class="text-white font-black uppercase text-center mb-6">Upload New Track</h3>
+            <div class="space-y-4">
+                <input type="text" id="track-name" placeholder="Judul Lagu" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <label class="text-[10px] block text-gray-500 mb-2 uppercase font-black">Audio File</label>
+                        <input type="file" id="file-audio" accept="audio/*" class="text-[10px] text-gray-400">
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <label class="text-[10px] block text-gray-500 mb-2 uppercase font-black">Cover Art</label>
+                        <input type="file" id="file-cover" accept="image/*" class="text-[10px] text-gray-400">
+                    </div>
+                </div>
+                <button id="upload-btn" onclick="processUpload()" class="w-full bg-cyan-400 text-black font-black py-4 rounded-2xl uppercase shadow-lg shadow-cyan-400/20">Add to Station</button>
+                <button onclick="closeUploadModal()" class="w-full text-gray-500 text-xs font-bold uppercase">Cancel</button>
             </div>
         </div>
     </div>
