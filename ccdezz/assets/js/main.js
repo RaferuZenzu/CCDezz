@@ -1,126 +1,117 @@
 /**
- * CCDEZZ CORE v9.0 - FOCUS: STABLE MP3 PLAYER & NO AVATAR
+ * CCDEZZ CORE v9.0 - NO PROFILE VERSION
  */
 
 let songDatabase = JSON.parse(localStorage.getItem('cc_songs')) || [];
 let likedSongs = JSON.parse(localStorage.getItem('cc_liked')) || [];
-const audioEngine = document.getElementById('audio-engine');
+const audioPlayer = document.getElementById('main-audio-player');
+
+// --- 1. MASTER KEY ACCESS ---
 const M_KEY = "MTIzNA=="; // Default: 1234
 
-// --- 1. SECURITY ---
 const checkMasterKey = () => {
     const input = document.getElementById('master-key').value;
     if (btoa(input) === M_KEY) {
         localStorage.setItem('cc_session', 'authorized');
         document.getElementById('auth-screen').classList.add('hidden');
-        initApp();
+        renderTracks(songDatabase);
     } else {
-        alert("ACCESS DENIED");
+        alert("ACCESS DENIED: Master Key Incorrect");
     }
 };
 
-// --- 2. MUSIC PLAYER ENGINE ---
+// --- 2. MUSIC ENGINE ---
 const playSong = (id) => {
     const song = songDatabase.find(s => s.id == id);
     if (!song) return;
-
-    // Set Audio & Player UI
-    audioEngine.src = song.src;
-    document.getElementById('player-title').innerText = song.title;
-    document.getElementById('player-cover').src = song.cover;
     
-    // Show Player Bar
-    const playerBar = document.getElementById('player-bar');
-    playerBar.classList.remove('player-hide');
-    playerBar.classList.add('player-show');
-
-    audioEngine.play();
-    updatePlayIcon(true);
+    audioPlayer.src = song.src;
+    audioPlayer.play()
+        .then(() => console.log("Now playing:", song.title))
+        .catch(err => {
+            console.error("Playback error:", err);
+            alert("Error: Browser blocked autoplay or file is corrupted.");
+        });
 };
 
-const togglePlay = () => {
-    if (audioEngine.paused) {
-        audioEngine.play();
-        updatePlayIcon(true);
-    } else {
-        audioEngine.pause();
-        updatePlayIcon(false);
-    }
-};
-
-const updatePlayIcon = (isPlaying) => {
-    const btn = document.getElementById('play-btn');
-    btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play ml-1"></i>';
-};
-
-const closePlayer = () => {
-    audioEngine.pause();
-    document.getElementById('player-bar').classList.replace('player-show', 'player-hide');
-};
-
-// --- 3. PROFILE & NAME ---
-const initProfile = () => {
-    const name = localStorage.getItem('cc_user_name') || "MASTER";
-    document.getElementById('user-name-sidebar').innerText = name;
-    document.getElementById('edit-username').value = name;
-    document.getElementById('user-avatar-initial').innerText = name.charAt(0).toUpperCase();
-};
-
-const updateNameOnly = () => {
-    const newName = document.getElementById('edit-username').value.trim();
-    if (newName) {
-        localStorage.setItem('cc_user_name', newName);
-        alert("Name Updated!");
-        location.reload();
-    }
-};
-
-// --- 4. DATA LOGIC ---
-const processUpload = async () => {
-    const audio = document.getElementById('file-audio').files[0];
-    const cover = document.getElementById('file-cover').files[0];
-
-    if (!audio) return alert("MP3 File Required!");
-
-    const song = {
-        id: Date.now(),
-        title: audio.name.replace(/\.[^/.]+$/, ""),
-        src: await toBase64(audio),
-        cover: cover ? await toBase64(cover) : 'assets/images/logo-ccdezz.jpg'
-    };
-
-    songDatabase.push(song);
-    localStorage.setItem('cc_songs', JSON.stringify(songDatabase));
-    renderTracks(songDatabase);
-    closeUploadModal();
-};
-
+// --- 3. TRACK RENDERER ---
 const renderTracks = (data, title = "Vibe Station") => {
     const list = document.getElementById('master-track-list');
-    document.getElementById('view-title').innerHTML = title.replace(" ", "<br>");
-    document.getElementById('track-count').innerText = `${data.length} Tracks`;
+    const viewTitle = document.getElementById('view-title');
+    
+    viewTitle.innerHTML = title.includes(" ") ? title.replace(" ", "<br>") : title;
+    document.getElementById('track-count').innerText = `${data.length} Tracks In Library`;
     
     list.innerHTML = '';
+    
+    if (data.length === 0) {
+        list.innerHTML = `
+            <div class="py-20 text-center opacity-30">
+                <i class="fas fa-compact-disc text-5xl mb-4 animate-spin-slow"></i>
+                <p class="text-[10px] font-black uppercase tracking-[0.4em]">Library is Empty</p>
+            </div>`;
+        return;
+    }
+
     data.forEach(s => {
         const isLiked = likedSongs.includes(s.id);
         list.innerHTML += `
-            <div class="flex items-center gap-4 p-4 hover:bg-white/5 rounded-2xl group transition border border-transparent hover:border-white/5">
-                <div class="relative w-12 h-12 flex-shrink-0 cursor-pointer" onclick="playSong(${s.id})">
-                    <img src="${s.cover}" class="w-full h-full rounded-lg object-cover">
-                    <div class="absolute inset-0 bg-cyan-400 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition">
-                        <i class="fas fa-play text-black text-xs"></i>
+            <div class="flex items-center gap-4 p-4 hover:bg-white/5 rounded-2xl group transition-all border border-transparent hover:border-white/5">
+                <div class="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0 cursor-pointer shadow-xl" onclick="playSong(${s.id})">
+                    <img src="${s.cover}" class="w-full h-full rounded-xl object-cover border border-white/5">
+                    <div class="absolute inset-0 bg-cyan-400/90 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-xl transition-all duration-300">
+                        <i class="fas fa-play text-black text-sm"></i>
                     </div>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-black text-white uppercase truncate">${s.title}</p>
-                    <p class="text-[9px] text-gray-600 uppercase">Authorized Access Only</p>
+                    <h4 class="text-xs font-black text-white uppercase truncate tracking-tight">${s.title}</h4>
+                    <p class="text-[9px] text-gray-500 uppercase mt-1">Authorized Stream • Local Storage</p>
                 </div>
-                <div class="flex gap-4">
-                    <button onclick="toggleLike(${s.id})" class="${isLiked ? 'liked' : 'text-gray-800'} transition active:scale-150"><i class="fas fa-heart"></i></button>
-                    <button onclick="deleteSong(${s.id})" class="text-gray-900 group-hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleLike(${s.id})" class="${isLiked ? 'liked' : 'text-gray-800'} transition-transform active:scale-150">
+                        <i class="fas fa-heart text-sm md:text-base"></i>
+                    </button>
+                    <button onclick="deleteSong(${s.id})" class="text-gray-900 group-hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                        <i class="fas fa-trash-alt text-xs md:text-sm"></i>
+                    </button>
                 </div>
             </div>`;
     });
+};
+
+// --- 4. UPLOAD LOGIC ---
+const processUpload = async () => {
+    const audio = document.getElementById('file-audio').files[0];
+    const cover = document.getElementById('file-cover').files[0];
+    const btn = document.getElementById('upload-btn');
+
+    if (!audio) return alert("Please select an MP3 file!");
+
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+
+    try {
+        const song = {
+            id: Date.now(),
+            title: audio.name.replace(/\.[^/.]+$/, ""),
+            src: await toBase64(audio),
+            cover: cover ? await toBase64(cover) : 'assets/images/logo-ccdezz.jpg'
+        };
+
+        songDatabase.push(song);
+        localStorage.setItem('cc_songs', JSON.stringify(songDatabase));
+        renderTracks(songDatabase);
+        closeUploadModal();
+        
+        // Reset Inputs
+        document.getElementById('file-audio').value = '';
+        document.getElementById('file-cover').value = '';
+    } catch (err) {
+        alert("Error processing file!");
+    } finally {
+        btn.innerText = "Save to Library";
+        btn.disabled = false;
+    }
 };
 
 const toggleLike = (id) => {
@@ -131,7 +122,7 @@ const toggleLike = (id) => {
 };
 
 const deleteSong = (id) => {
-    if(confirm("Delete permanently?")) {
+    if(confirm("Permanently delete this track?")) {
         songDatabase = songDatabase.filter(s => s.id !== id);
         localStorage.setItem('cc_songs', JSON.stringify(songDatabase));
         renderTracks(songDatabase);
@@ -139,27 +130,28 @@ const deleteSong = (id) => {
 };
 
 // --- UTILS ---
-const toBase64 = f => new Promise(res => {
+const toBase64 = f => new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(r.result);
+    r.onerror = e => rej(e);
     r.readAsDataURL(f);
 });
 
-const logout = () => { if(confirm("Reset everything?")) { localStorage.clear(); location.reload(); } };
-const openUploadModal = () => document.getElementById('upload-modal').classList.remove('hidden');
-const closeUploadModal = () => document.getElementById('upload-modal').classList.add('hidden');
-const openProfileModal = () => document.getElementById('profile-modal').classList.remove('hidden');
-const closeProfileModal = () => document.getElementById('profile-modal').classList.add('hidden');
-const renderLiked = () => renderTracks(songDatabase.filter(s => likedSongs.includes(s.id)), "Liked Songs");
-
-const initApp = () => {
-    initProfile();
-    renderTracks(songDatabase);
+const logout = () => {
+    if(confirm("Lock station and clear session? (Data music tetap aman)")) {
+        localStorage.removeItem('cc_session');
+        location.reload();
+    }
 };
 
+const openUploadModal = () => document.getElementById('upload-modal').classList.remove('hidden');
+const closeUploadModal = () => document.getElementById('upload-modal').classList.add('hidden');
+const renderLiked = () => renderTracks(songDatabase.filter(s => likedSongs.includes(s.id)), "Liked Tracks");
+
+// --- INITIALIZE ---
 document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('cc_session') === 'authorized') {
         document.getElementById('auth-screen').classList.add('hidden');
-        initApp();
+        renderTracks(songDatabase);
     }
 });
